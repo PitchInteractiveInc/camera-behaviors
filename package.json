@@ -1,0 +1,28 @@
+{
+  "name": "camera-behaviors",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "start": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js --host 0.0.0.0 --port 8888",
+    "build": "webpack --progress --colors"
+  },
+  "author": "Pitch Interactive",
+  "devDependencies": {
+    "babel-core": "^6.13.2",
+    "babel-loader": "^6.2.4",
+    "babel-preset-react": "^6.11.1",
+    "css-loader": "^0.23.1",
+    "html-webpack-plugin": "^2.22.0",
+    "node-sass": "^3.8.0",
+    "sass-loader": "^4.0.0",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.13.1",
+    "webpack-dev-server": "^1.14.1"
+  },
+  "dependencies": {
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0",
+    "three": "^0.79.0",
+    "tween.js": "^16.3.5"
+  }
+}
