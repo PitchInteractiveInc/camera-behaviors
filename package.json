@@ -1,18 +1,17 @@
 {
   "name": "camera-behaviors",
-  "version": "0.1.0",
+  "author": "Pitch Interactive",
   "description": "Sample code demonstrating switching between camera behaviors",
-  "repository" :
-  {
+  "version": "1.0",
+  "license": "ISC",
+  "repository" : {
     "type" : "git",
     "url" : "https://github.com/PitchInteractiveInc/camera-behaviors.git"
   },
-  "license": "ISC",
   "scripts": {
     "start": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js --host 0.0.0.0 --port 8888",
     "build": "webpack --progress --colors"
   },
-  "author": "Pitch Interactive",
   "devDependencies": {
     "babel-core": "^6.13.2",
     "babel-loader": "^6.2.4",
