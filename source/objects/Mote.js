@@ -47,6 +47,8 @@ export default class Mote {
       this._position.y,
       this._position.z
     )
+    // The bobbing motion in the object's rotation was not intentional
+    // but adds some nice personality!
     this._object.rotation.set(
       Math.cos(time) * Math.PI * 0.5,
       0.0,
