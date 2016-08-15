@@ -19,6 +19,10 @@ export default class World {
     this._scene.add(object.getObject())
   }
 
+  useBehavior(behavior) {
+    this._camera.useBehavior(behavior, this._objects)
+  }
+
   _buildRenderer() {
     const renderer = new THREE.WebGLRenderer({antialias: true})
     renderer.setClearColor(0xD0D0D0)
@@ -45,7 +49,7 @@ export default class World {
     Object.keys(this._objects).forEach(key => {
       this._objects[key].animate(timestamp)
     })
-    this._camera.animate(this._objects)
+    this._camera.animate()
     this._renderer.render(this._scene, this._camera.getCamera())
   }
 }

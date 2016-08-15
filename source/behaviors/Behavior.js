@@ -2,8 +2,9 @@ import THREE from 'three'
 import TWEEN from 'tween.js'
 
 export default class Behavior {
-  constructor(camera) {
+  constructor(camera, worldObjects) {
     this._camera = camera
+    this._worldObjects = worldObjects
   }
 
   /** To override */
@@ -11,7 +12,7 @@ export default class Behavior {
   }
 
   /** To override */
-  animate(worldObjects) {
+  animate() {
   }
 
   /** Set up a Tween from current position to requested one */

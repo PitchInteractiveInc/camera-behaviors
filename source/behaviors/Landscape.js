@@ -8,7 +8,7 @@ export default class Landscape extends Behavior {
     this.__beginAnimationToPosition(landscapePosition, DURATION)
   }
 
-  animate(worldObjects) {
+  animate() {
     this.__animateToPosition()
   }
 }

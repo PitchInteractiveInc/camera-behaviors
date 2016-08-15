@@ -8,7 +8,7 @@ export default class Overhead extends Behavior {
     this.__beginAnimationToPosition(overheadPosition, DURATION)
   }
 
-  animate(worldObjects) {
+  animate() {
     this.__animateToPosition()
   }
 }

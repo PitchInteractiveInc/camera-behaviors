@@ -7,19 +7,13 @@ const MOTE_HISTORY_LENGTH = 80
 
 export default class Trail extends Behavior {
   begin() {
-    this._doInit = true
+    this._fromPosition = this._camera.getCamera().position
+    this._fromLookAtPosition = this._camera.getLookAtPosition()
     this._moteHistory = []
   }
 
-  animate(worldObjects) {
-    if (this._doInit) {
-      // actually begin now that we have worldObjects
-      this._doInit = false
-
-      this._fromPosition = this._camera.getCamera().position
-      this._fromLookAtPosition = this._camera.getLookAtPosition()
-    }
-    const motePosition = worldObjects.Mote.getObject().position
+  animate() {
+    const motePosition = this._worldObjects.Mote.getObject().position
 
     // go to
     this._moteHistory.push(motePosition)

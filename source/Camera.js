@@ -21,8 +21,8 @@ export default class Camera {
     this.useBehavior(behavior)
   }
 
-  useBehavior(behavior) {
-    this._behavior = new behavior(this)
+  useBehavior(behavior, worldObjects) {
+    this._behavior = new behavior(this, worldObjects)
     this._behavior.begin()
   }
 
@@ -38,8 +38,8 @@ export default class Camera {
     this._lookAtPosition = lookAtPosition
   }
 
-  animate(worldObjects) {
-    this._behavior.animate(worldObjects)
+  animate() {
+    this._behavior.animate()
     this.repoint()
   }
 
