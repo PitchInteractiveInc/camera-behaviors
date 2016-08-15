@@ -78,21 +78,25 @@
 
 	var _Overhead2 = _interopRequireDefault(_Overhead);
 
-	var _Landscape = __webpack_require__(184);
+	var _Landscape = __webpack_require__(185);
 
 	var _Landscape2 = _interopRequireDefault(_Landscape);
 
-	var _Trail = __webpack_require__(185);
+	var _Spin = __webpack_require__(186);
+
+	var _Spin2 = _interopRequireDefault(_Spin);
+
+	var _Trail = __webpack_require__(187);
 
 	var _Trail2 = _interopRequireDefault(_Trail);
 
-	__webpack_require__(186);
+	__webpack_require__(188);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var objects = [new _Plane2.default(), new _Mote2.default()];
 
-	var behaviors = [_Overhead2.default, _Landscape2.default, _Trail2.default];
+	var behaviors = [_Overhead2.default, _Landscape2.default, _Spin2.default, _Trail2.default];
 
 	var camera = new _Camera2.default(behaviors[0]);
 	var world = new _World2.default(camera);
@@ -107,7 +111,7 @@
 	  _react2.default.createElement(_Selector2.default, {
 	    behaviors: behaviors,
 	    onSelect: function onSelect(behavior) {
-	      return camera.useBehavior(behavior);
+	      return world.useBehavior(behavior);
 	    }
 	  })
 	), document.body);
@@ -21643,6 +21647,11 @@
 	      this._scene.add(object.getObject());
 	    }
 	  }, {
+	    key: 'useBehavior',
+	    value: function useBehavior(behavior) {
+	      this._camera.useBehavior(behavior, this._objects);
+	    }
+	  }, {
 	    key: '_buildRenderer',
 	    value: function _buildRenderer() {
 	      var renderer = new _three2.default.WebGLRenderer({ antialias: true });
@@ -21675,7 +21684,7 @@
 	      Object.keys(this._objects).forEach(function (key) {
 	        _this._objects[key].animate(timestamp);
 	      });
-	      this._camera.animate(this._objects);
+	      this._camera.animate();
 	      this._renderer.render(this._scene, this._camera.getCamera());
 	    }
 	  }]);
@@ -64363,16 +64372,15 @@
 	    _classCallCheck(this, Camera);
 
 	    this._camera = new _three2.default.PerspectiveCamera(OPTIONS.fov, OPTIONS.aspect, OPTIONS.near, OPTIONS.far);
-	    // this._camera.position.set(0.0, cameraDistance, 3.0)
-	    this._lookAtPosition = new _three2.default.Vector3(0.0, 0.0, 0.0);
+	    this._lookAtPosition = _geometryConstants.defaultLookAtPosition.clone();
 	    this.useBehavior(behavior);
 	  }
 
 	  _createClass(Camera, [{
 	    key: 'useBehavior',
-	    value: function useBehavior(behavior) {
-	      this._behavior = new behavior();
-	      this._behavior.begin(this);
+	    value: function useBehavior(behavior, worldObjects) {
+	      this._behavior = new behavior(this, worldObjects);
+	      this._behavior.begin();
 	    }
 	  }, {
 	    key: 'getCamera',
@@ -64389,16 +64397,22 @@
 	    value: function setLookAtPosition(lookAtPosition) {
 	      this._lookAtPosition = lookAtPosition;
 	    }
+
+	    /** Frame handler */
+
 	  }, {
 	    key: 'animate',
-	    value: function animate(worldObjects) {
-	      this._behavior.animate(this, worldObjects);
+	    value: function animate() {
+	      this._behavior.animate();
 	      this.repoint();
 	    }
+
+	    /** Repoint camera to look at _lookAtPosition with the right 'up' direction */
+
 	  }, {
 	    key: 'repoint',
 	    value: function repoint() {
-	      this._camera.quaternion.setFromRotationMatrix(new _three2.default.Matrix4().lookAt(this._camera.position, this._lookAtPosition, _geometryConstants.UP));
+	      this._camera.quaternion.setFromRotationMatrix(new _three2.default.Matrix4().lookAt(this._camera.position, this._lookAtPosition, _geometryConstants.upVector));
 	    }
 	  }]);
 
@@ -64425,7 +64439,13 @@
 	  moteRadius: 0.02,
 	  moteHeight: 0.1,
 	  cameraDistance: 2.0,
-	  UP: new _three2.default.Vector3(0.0, 1.0, 0.0)
+	  upVector: new _three2.default.Vector3(0.0, 1.0, 0.0),
+	  defaultLookAtPosition: new _three2.default.Vector3(0.0, 0.0, 0.0),
+	  // nudge overhead position just south of defaultLookAtPosition
+	  // to make it easier to maintain 'up' direction
+	  overheadPosition: new _three2.default.Vector3(0.0, 4.0, 0.001),
+	  landscapePosition: new _three2.default.Vector3(0.0, 1.0, 4.0),
+	  spinPosition: new _three2.default.Vector3(0.0, 0.1, 0.0)
 	};
 
 /***/ },
@@ -64543,16 +64563,40 @@
 	  }, {
 	    key: 'animate',
 	    value: function animate(timestamp) {
-	      var time = timestamp * 0.001;
-	      this._updatePosition(time);
+	      this._lastTimestamp = timestamp;
+	      var time = this._scaleTime(timestamp);
+	      this._updatePosition(this._position, time);
 	      this._object.position.set(this._position.x, this._position.y, this._position.z);
 	      this._object.rotation.set(Math.cos(time) * Math.PI * 0.5, 0.0, Math.sin(time) * Math.PI * 0.5);
 	    }
+
+	    /**
+	     * Guess future position timeDelta millis in the future.
+	     * Even if it weren't possible to know the object's position in the future
+	     * exactly, having a reasonable guess can help produce smooth animations.
+	     */
+
+	  }, {
+	    key: 'guessFuturePosition',
+	    value: function guessFuturePosition(timeDelta) {
+	      var time = this._scaleTime(this._lastTimestamp + timeDelta);
+	      var futurePosition = this._object.position.clone();
+	      this._updatePosition(futurePosition, time);
+	      return futurePosition;
+	    }
+
+	    /** Scale time in millis down for trigonometric functions */
+
+	  }, {
+	    key: '_scaleTime',
+	    value: function _scaleTime(timestamp) {
+	      return timestamp * 0.001;
+	    }
 	  }, {
 	    key: '_updatePosition',
-	    value: function _updatePosition(time) {
-	      this._position.x = Math.cos(time) * MOVEMENT_RADIUS;
-	      this._position.z = Math.sin(time) * MOVEMENT_RADIUS;
+	    value: function _updatePosition(position, time) {
+	      position.x = Math.cos(time) * MOVEMENT_RADIUS;
+	      position.z = Math.sin(time) * MOVEMENT_RADIUS;
 	    }
 	  }]);
 
@@ -64573,46 +64617,48 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _three = __webpack_require__(177);
+	var _Behavior2 = __webpack_require__(184);
 
-	var _three2 = _interopRequireDefault(_three);
+	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
-	var _tween = __webpack_require__(178);
-
-	var _tween2 = _interopRequireDefault(_tween);
+	var _geometryConstants = __webpack_require__(180);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var DURATION = 3000;
 
-	var Overhead = function () {
+	var Overhead = function (_Behavior) {
+	  _inherits(Overhead, _Behavior);
+
 	  function Overhead() {
 	    _classCallCheck(this, Overhead);
+
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Overhead).apply(this, arguments));
 	  }
 
 	  _createClass(Overhead, [{
 	    key: 'begin',
-	    value: function begin(camera) {
-	      this._fromPosition = camera.getCamera().position;
-	      this._toPosition = new _three2.default.Vector3(0.0, 4.0, 0.001);
-	      this._fromLookAtPosition = camera.getLookAtPosition();
-	      this._toLookAtPosition = new _three2.default.Vector3(0.0, 0.0, 0.0);
-
-	      this._progress = 0.0;
-	      new _tween2.default.Tween(this).to({ _progress: 1.0 }, DURATION).easing(_tween2.default.Easing.Quadratic.InOut).start();
+	    value: function begin() {
+	      this.__storeFromPosition();
+	      this.__toPosition = _geometryConstants.overheadPosition.clone();
+	      this.__toLookAtPosition = _geometryConstants.defaultLookAtPosition.clone();
+	      this.__beginAnimation(DURATION);
 	    }
 	  }, {
 	    key: 'animate',
-	    value: function animate(camera, worldObjects) {
-	      camera.getCamera().position.copy(this._fromPosition.lerp(this._toPosition, this._progress));
-	      camera.setLookAtPosition(this._fromLookAtPosition.lerp(this._toLookAtPosition, this._progress));
+	    value: function animate() {
+	      this.__animateToPosition();
 	    }
 	  }]);
 
 	  return Overhead;
-	}();
+	}(_Behavior3.default);
 
 	exports.default = Overhead;
 
@@ -64640,39 +64686,124 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var Behavior = function () {
+	  function Behavior(camera, worldObjects) {
+	    _classCallCheck(this, Behavior);
+
+	    this._camera = camera;
+
+	    // position to be set up in begin()
+	    this.__fromPosition = null;
+	    this.__fromLookAtPosition = null;
+	    this.__toPosition = null;
+	    this.__toLookAtPosition = null;
+	  }
+
+	  /** To override. Called once after instantiation */
+
+
+	  _createClass(Behavior, [{
+	    key: 'begin',
+	    value: function begin() {}
+
+	    /** To override. Called on each animation frame */
+
+	  }, {
+	    key: 'animate',
+	    value: function animate() {}
+
+	    /** Store current camera position / look-at position, to transition from */
+
+	  }, {
+	    key: '__storeFromPosition',
+	    value: function __storeFromPosition() {
+	      this.__fromPosition = this._camera.getCamera().position;
+	      this.__fromLookAtPosition = this._camera.getLookAtPosition();
+	    }
+
+	    /** Start animation tween */
+
+	  }, {
+	    key: '__beginAnimation',
+	    value: function __beginAnimation(duration) {
+	      this._progress = 0.0;
+	      new _tween2.default.Tween(this).to({ _progress: 1.0 }, duration).easing(_tween2.default.Easing.Quadratic.InOut).start();
+	    }
+
+	    /** Frame handler animating position / look-at position */
+
+	  }, {
+	    key: '__animateToPosition',
+	    value: function __animateToPosition() {
+	      this._camera.getCamera().position.copy(this.__fromPosition.lerp(this.__toPosition, this._progress));
+	      this._camera.setLookAtPosition(this.__fromLookAtPosition.lerp(this.__toLookAtPosition, this._progress));
+	    }
+	  }]);
+
+	  return Behavior;
+	}();
+
+	exports.default = Behavior;
+
+/***/ },
+/* 185 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _Behavior2 = __webpack_require__(184);
+
+	var _Behavior3 = _interopRequireDefault(_Behavior2);
+
+	var _geometryConstants = __webpack_require__(180);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var DURATION = 3000;
 
-	var Landscape = function () {
+	var Landscape = function (_Behavior) {
+	  _inherits(Landscape, _Behavior);
+
 	  function Landscape() {
 	    _classCallCheck(this, Landscape);
+
+	    return _possibleConstructorReturn(this, Object.getPrototypeOf(Landscape).apply(this, arguments));
 	  }
 
 	  _createClass(Landscape, [{
 	    key: 'begin',
-	    value: function begin(camera) {
-	      this._fromPosition = camera.getCamera().position;
-	      this._toPosition = new _three2.default.Vector3(0.0, 1.0, 4.0);
-	      this._fromLookAtPosition = camera.getLookAtPosition();
-	      this._toLookAtPosition = new _three2.default.Vector3(0.0, 0.0, 0.0);
-
-	      this._progress = 0.0;
-	      new _tween2.default.Tween(this).to({ _progress: 1.0 }, DURATION).easing(_tween2.default.Easing.Quadratic.InOut).start();
+	    value: function begin() {
+	      this.__storeFromPosition();
+	      this.__toPosition = _geometryConstants.landscapePosition.clone();
+	      this.__toLookAtPosition = _geometryConstants.defaultLookAtPosition.clone();
+	      this.__beginAnimation(DURATION);
 	    }
 	  }, {
 	    key: 'animate',
-	    value: function animate(camera, worldObjects) {
-	      camera.getCamera().position.copy(this._fromPosition.lerp(this._toPosition, this._progress));
-	      camera.setLookAtPosition(this._fromLookAtPosition.lerp(this._toLookAtPosition, this._progress));
+	    value: function animate() {
+	      this.__animateToPosition();
 	    }
 	  }]);
 
 	  return Landscape;
-	}();
+	}(_Behavior3.default);
 
 	exports.default = Landscape;
 
 /***/ },
-/* 185 */
+/* 186 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -64691,66 +64822,146 @@
 
 	var _tween2 = _interopRequireDefault(_tween);
 
+	var _Behavior2 = __webpack_require__(184);
+
+	var _Behavior3 = _interopRequireDefault(_Behavior2);
+
+	var _geometryConstants = __webpack_require__(180);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var DURATION = 3000;
-	var MOTE_HISTORY_LENGTH = 80;
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	var Trail = function () {
-	  function Trail() {
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var DURATION = 3000;
+
+	var Spin = function (_Behavior) {
+	  _inherits(Spin, _Behavior);
+
+	  function Spin(camera, worldObjects) {
+	    _classCallCheck(this, Spin);
+
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Spin).call(this, camera, worldObjects));
+
+	    _this._mote = worldObjects.Mote;
+	    return _this;
+	  }
+
+	  _createClass(Spin, [{
+	    key: 'begin',
+	    value: function begin() {
+	      this.__storeFromPosition();
+	      this.__toPosition = _geometryConstants.spinPosition;
+	      this._updateLookAtPosition();
+	      this.__beginAnimation(DURATION);
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      this._updateLookAtPosition();
+	      this.__animateToPosition();
+	    }
+	  }, {
+	    key: '_updateLookAtPosition',
+	    value: function _updateLookAtPosition() {
+	      this.__toLookAtPosition = this._mote.getObject().position;
+	    }
+	  }]);
+
+	  return Spin;
+	}(_Behavior3.default);
+
+	exports.default = Spin;
+
+/***/ },
+/* 187 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _three = __webpack_require__(177);
+
+	var _three2 = _interopRequireDefault(_three);
+
+	var _tween = __webpack_require__(178);
+
+	var _tween2 = _interopRequireDefault(_tween);
+
+	var _Behavior2 = __webpack_require__(184);
+
+	var _Behavior3 = _interopRequireDefault(_Behavior2);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var DURATION = 3000;
+
+	var TO_POSITION_LOOKAHEAD_MS = -400;
+	var TO_LOOK_AT_POSITION_LOOKAHEAD_MS = 250;
+
+	var Trail = function (_Behavior) {
+	  _inherits(Trail, _Behavior);
+
+	  function Trail(camera, worldObjects) {
 	    _classCallCheck(this, Trail);
+
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Trail).call(this, camera, worldObjects));
+
+	    _this._mote = worldObjects.Mote;
+	    return _this;
 	  }
 
 	  _createClass(Trail, [{
 	    key: 'begin',
-	    value: function begin(camera) {
-	      this._doInit = true;
-	      this._moteHistory = [];
+	    value: function begin() {
+	      this.__storeFromPosition();
+	      this._updateToPositions();
+	      this.__beginAnimation(DURATION);
 	    }
 	  }, {
 	    key: 'animate',
-	    value: function animate(camera, worldObjects) {
-	      if (this._doInit) {
-	        // actually begin now that we have worldObjects
-	        this._doInit = false;
-
-	        this._fromPosition = camera.getCamera().position;
-	        this._fromLookAtPosition = camera.getLookAtPosition();
-	      }
-	      var motePosition = worldObjects.Mote.getObject().position;
-
-	      // go to
-	      this._moteHistory.push(motePosition);
-	      if (this._moteHistory < MOTE_HISTORY_LENGTH) {
-	        return;
-	      }
-	      this._moteHistory.splice(0, this._moteHistory - MOTE_HISTORY_LENGTH);
-
-	      camera.getCamera().position.copy(this._fromPosition.lerp(this._moteHistory[0].clone().setY(0.1), 0.05));
-
-	      // look at
-	      camera.setLookAtPosition(this._fromLookAtPosition.lerp(motePosition, 0.1));
+	    value: function animate() {
+	      this._updateToPositions();
+	      this.__animateToPosition();
+	    }
+	  }, {
+	    key: '_updateToPositions',
+	    value: function _updateToPositions() {
+	      this.__toPosition = this._mote.guessFuturePosition(TO_POSITION_LOOKAHEAD_MS);
+	      this.__toLookAtPosition = this._mote.guessFuturePosition(TO_LOOK_AT_POSITION_LOOKAHEAD_MS);
 	    }
 	  }]);
 
 	  return Trail;
-	}();
+	}(_Behavior3.default);
 
 	exports.default = Trail;
 
 /***/ },
-/* 186 */
+/* 188 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(187);
+	var content = __webpack_require__(189);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(189)(content, {});
+	var update = __webpack_require__(191)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -64767,10 +64978,10 @@
 	}
 
 /***/ },
-/* 187 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(188)();
+	exports = module.exports = __webpack_require__(190)();
 	// imports
 
 
@@ -64781,7 +64992,7 @@
 
 
 /***/ },
-/* 188 */
+/* 190 */
 /***/ function(module, exports) {
 
 	/*
@@ -64837,7 +65048,7 @@
 
 
 /***/ },
-/* 189 */
+/* 191 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
