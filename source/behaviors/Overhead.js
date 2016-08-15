@@ -1,11 +1,17 @@
 import Behavior from './Behavior'
-import {overheadPosition} from '../constants/geometryConstants'
+import {
+  overheadPosition,
+  defaultLookAtPosition,
+} from '../constants/geometryConstants'
 
 const DURATION = 3000
 
 export default class Overhead extends Behavior {
   begin() {
-    this.__beginAnimationToPosition(overheadPosition, DURATION)
+    this.__storeFromPosition()
+    this.__toPosition = overheadPosition.clone()
+    this.__toLookAtPosition = defaultLookAtPosition.clone()
+    this.__beginAnimation(DURATION)
   }
 
   animate() {

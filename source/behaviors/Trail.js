@@ -3,38 +3,33 @@ import TWEEN from 'tween.js'
 import Behavior from './Behavior'
 
 const DURATION = 3000
-const MOTE_HISTORY_LENGTH = 80
+
+const TO_POSITION_LOOKAHEAD_MS = -400
+const TO_LOOK_AT_POSITION_LOOKAHEAD_MS = 250
 
 export default class Trail extends Behavior {
+  constructor(camera, worldObjects) {
+    super(camera, worldObjects)
+    this._mote = worldObjects.Mote
+  }
+
   begin() {
-    this._fromPosition = this._camera.getCamera().position
-    this._fromLookAtPosition = this._camera.getLookAtPosition()
-    this._moteHistory = []
+    this.__storeFromPosition()
+    this._updateToPositions()
+    this.__beginAnimation(DURATION)
   }
 
   animate() {
-    const motePosition = this._worldObjects.Mote.getObject().position
+    this._updateToPositions()
+    this.__animateToPosition()
+  }
 
-    // go to
-    this._moteHistory.push(motePosition)
-    if (this._moteHistory < MOTE_HISTORY_LENGTH) {
-      return
-    }
-    this._moteHistory.splice(0, this._moteHistory - MOTE_HISTORY_LENGTH)
-
-    this._camera.getCamera().position.copy(
-      this._fromPosition.lerp(
-        this._moteHistory[0].clone().setY(0.1),
-        0.05
-      )
+  _updateToPositions() {
+    this.__toPosition = this._mote.guessFuturePosition(
+      TO_POSITION_LOOKAHEAD_MS
     )
-
-    // look at
-    this._camera.setLookAtPosition(
-      this._fromLookAtPosition.lerp(
-        motePosition,
-        0.1
-      )
+    this.__toLookAtPosition = this._mote.guessFuturePosition(
+      TO_LOOK_AT_POSITION_LOOKAHEAD_MS
     )
   }
 }

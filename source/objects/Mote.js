@@ -39,8 +39,9 @@ export default class Mote {
   }
 
   animate(timestamp) {
-    const time = timestamp * 0.001
-    this._updatePosition(time)
+    this._lastTimestamp = timestamp
+    const time = this._scaleTime(timestamp)
+    this._updatePosition(this._position, time)
     this._object.position.set(
       this._position.x,
       this._position.y,
@@ -53,8 +54,25 @@ export default class Mote {
     )
   }
 
-  _updatePosition(time) {
-    this._position.x = Math.cos(time) * MOVEMENT_RADIUS
-    this._position.z = Math.sin(time) * MOVEMENT_RADIUS
+  /**
+   * Guess future position timeDelta millis in the future.
+   * Even if it weren't possible to know the object's position in the future
+   * exactly, having a reasonable guess can help produce smooth animations.
+   */
+  guessFuturePosition(timeDelta) {
+    const time = this._scaleTime(this._lastTimestamp + timeDelta)
+    const futurePosition = this._object.position.clone()
+    this._updatePosition(futurePosition, time)
+    return futurePosition
+  }
+
+  /** Scale time in millis down for trigonometric functions */
+  _scaleTime(timestamp) {
+    return timestamp * 0.001
+  }
+
+  _updatePosition(position, time) {
+    position.x = Math.cos(time) * MOVEMENT_RADIUS
+    position.z = Math.sin(time) * MOVEMENT_RADIUS
   }
 }

@@ -1,5 +1,9 @@
 import THREE from 'three'
-import {cameraDistance, UP} from './constants/geometryConstants'
+import {
+  cameraDistance,
+  defaultLookAtPosition,
+  upVector,
+} from './constants/geometryConstants'
 
 const OPTIONS = {
   fov: 45, // degrees
@@ -16,8 +20,7 @@ export default class Camera {
       OPTIONS.near,
       OPTIONS.far
     )
-    // this._camera.position.set(0.0, cameraDistance, 3.0)
-    this._lookAtPosition = new THREE.Vector3(0.0, 0.0, 0.0)
+    this._lookAtPosition = defaultLookAtPosition.clone()
     this.useBehavior(behavior)
   }
 
@@ -38,17 +41,19 @@ export default class Camera {
     this._lookAtPosition = lookAtPosition
   }
 
+  /** Frame handler */
   animate() {
     this._behavior.animate()
     this.repoint()
   }
 
+  /** Repoint camera to look at _lookAtPosition with the right 'up' direction */
   repoint() {
     this._camera.quaternion.setFromRotationMatrix(
       new THREE.Matrix4().lookAt(
         this._camera.position,
         this._lookAtPosition,
-        UP
+        upVector
       )
     )
   }

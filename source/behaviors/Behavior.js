@@ -4,24 +4,30 @@ import TWEEN from 'tween.js'
 export default class Behavior {
   constructor(camera, worldObjects) {
     this._camera = camera
-    this._worldObjects = worldObjects
+
+    // position to be set up in begin()
+    this.__fromPosition = null
+    this.__fromLookAtPosition = null
+    this.__toPosition = null
+    this.__toLookAtPosition = null
   }
 
-  /** To override */
+  /** To override. Called once after instantiation */
   begin() {
   }
 
-  /** To override */
+  /** To override. Called on each animation frame */
   animate() {
   }
 
-  /** Set up a Tween from current position to requested one */
-  __beginAnimationToPosition(position, duration) {
-    this._fromPosition = this._camera.getCamera().position
-    this._toPosition = position
-    this._fromLookAtPosition = this._camera.getLookAtPosition()
-    this._toLookAtPosition = new THREE.Vector3(0.0, 0.0, 0.0)
+  /** Store current camera position / look-at position, to transition from */
+  __storeFromPosition() {
+    this.__fromPosition = this._camera.getCamera().position
+    this.__fromLookAtPosition = this._camera.getLookAtPosition()
+  }
 
+  /** Start animation tween */
+  __beginAnimation(duration) {
     this._progress = 0.0
     new TWEEN.Tween(this)
       .to({_progress: 1.0}, duration)
@@ -29,13 +35,13 @@ export default class Behavior {
       .start()
   }
 
-  /** Frame handler implementing __beginAnimationToPosition animation */
+  /** Frame handler animating position / look-at position */
   __animateToPosition() {
     this._camera.getCamera().position.copy(
-      this._fromPosition.lerp(this._toPosition, this._progress)
+      this.__fromPosition.lerp(this.__toPosition, this._progress)
     )
     this._camera.setLookAtPosition(
-      this._fromLookAtPosition.lerp(this._toLookAtPosition, this._progress)
+      this.__fromLookAtPosition.lerp(this.__toLookAtPosition, this._progress)
     )
   }
 }
