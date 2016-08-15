@@ -24,5 +24,9 @@ module.exports = {
       },
     ],
   },
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: "Camera Behaviors",
+    }),
+  ],
 }
