@@ -2,7 +2,7 @@
   "name": "camera-behaviors",
   "author": "Pitch Interactive",
   "description": "Sample code demonstrating switching between camera behaviors",
-  "version": "1.0",
+  "version": "1.0.0",
   "license": "ISC",
   "repository" : {
     "type" : "git",
