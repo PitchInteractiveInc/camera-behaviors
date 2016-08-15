@@ -32,7 +32,7 @@ ReactDOM.render(
     <div id="canvas" />
     <Selector
       behaviors={behaviors}
-      onSelect={(behavior) => camera.useBehavior(behavior)}
+      onSelect={behavior => camera.useBehavior(behavior)}
       />
   </div>,
   document.body

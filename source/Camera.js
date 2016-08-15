@@ -22,8 +22,8 @@ export default class Camera {
   }
 
   useBehavior(behavior) {
-    this._behavior = new behavior()
-    this._behavior.begin(this)
+    this._behavior = new behavior(this)
+    this._behavior.begin()
   }
 
   getCamera() {
@@ -39,7 +39,7 @@ export default class Camera {
   }
 
   animate(worldObjects) {
-    this._behavior.animate(this, worldObjects)
+    this._behavior.animate(worldObjects)
     this.repoint()
   }
 
