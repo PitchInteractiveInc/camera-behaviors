@@ -7,6 +7,7 @@ import Plane from './source/objects/Plane'
 import Mote from './source/objects/Mote'
 import Overhead from './source/behaviors/Overhead'
 import Landscape from './source/behaviors/Landscape'
+import Spin from './source/behaviors/Spin'
 import Trail from './source/behaviors/Trail'
 import './styles/index.scss'
 
@@ -18,6 +19,7 @@ const objects = [
 const behaviors = [
   Overhead,
   Landscape,
+  Spin,
   Trail,
 ]
 
