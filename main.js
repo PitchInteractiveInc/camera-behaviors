@@ -64438,6 +64438,7 @@
 	  planeMaxHeight: 0.05,
 	  moteRadius: 0.02,
 	  moteHeight: 0.1,
+	  trailAltitude: 0.2,
 	  cameraDistance: 2.0,
 	  upVector: new _three2.default.Vector3(0.0, 1.0, 0.0),
 	  defaultLookAtPosition: new _three2.default.Vector3(0.0, 0.0, 0.0),
@@ -64567,6 +64568,8 @@
 	      var time = this._scaleTime(timestamp);
 	      this._updatePosition(this._position, time);
 	      this._object.position.set(this._position.x, this._position.y, this._position.z);
+	      // The bobbing motion in the object's rotation was not intentional
+	      // but adds some nice personality!
 	      this._object.rotation.set(Math.cos(time) * Math.PI * 0.5, 0.0, Math.sin(time) * Math.PI * 0.5);
 	    }
 
@@ -64900,6 +64903,8 @@
 
 	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
+	var _geometryConstants = __webpack_require__(180);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -64910,7 +64915,7 @@
 
 	var DURATION = 3000;
 
-	var TO_POSITION_LOOKAHEAD_MS = -400;
+	var TO_POSITION_LOOKAHEAD_MS = -600;
 	var TO_LOOK_AT_POSITION_LOOKAHEAD_MS = 250;
 
 	var Trail = function (_Behavior) {
@@ -64941,7 +64946,7 @@
 	  }, {
 	    key: '_updateToPositions',
 	    value: function _updateToPositions() {
-	      this.__toPosition = this._mote.guessFuturePosition(TO_POSITION_LOOKAHEAD_MS);
+	      this.__toPosition = this._mote.guessFuturePosition(TO_POSITION_LOOKAHEAD_MS).setY(_geometryConstants.trailAltitude);
 	      this.__toLookAtPosition = this._mote.guessFuturePosition(TO_LOOK_AT_POSITION_LOOKAHEAD_MS);
 	    }
 	  }]);
