@@ -1,10 +1,11 @@
 import THREE from 'three'
 import TWEEN from 'tween.js'
 import Behavior from './Behavior'
+import {trailAltitude} from '../constants/geometryConstants'
 
 const DURATION = 3000
 
-const TO_POSITION_LOOKAHEAD_MS = -400
+const TO_POSITION_LOOKAHEAD_MS = -600
 const TO_LOOK_AT_POSITION_LOOKAHEAD_MS = 250
 
 export default class Trail extends Behavior {
@@ -27,7 +28,7 @@ export default class Trail extends Behavior {
   _updateToPositions() {
     this.__toPosition = this._mote.guessFuturePosition(
       TO_POSITION_LOOKAHEAD_MS
-    )
+    ).setY(trailAltitude)
     this.__toLookAtPosition = this._mote.guessFuturePosition(
       TO_LOOK_AT_POSITION_LOOKAHEAD_MS
     )

@@ -5,6 +5,7 @@ module.exports = {
   planeMaxHeight: 0.05,
   moteRadius: 0.02,
   moteHeight: 0.1,
+  trailAltitude: 0.2,
   cameraDistance: 2.0,
   upVector: new THREE.Vector3(0.0, 1.0, 0.0),
   defaultLookAtPosition: new THREE.Vector3(0.0, 0.0, 0.0),
