@@ -74,29 +74,37 @@
 
 	var _Mote2 = _interopRequireDefault(_Mote);
 
-	var _Overhead = __webpack_require__(183);
+	var _Tree = __webpack_require__(183);
+
+	var _Tree2 = _interopRequireDefault(_Tree);
+
+	var _Overhead = __webpack_require__(184);
 
 	var _Overhead2 = _interopRequireDefault(_Overhead);
 
-	var _Landscape = __webpack_require__(185);
+	var _Landscape = __webpack_require__(186);
 
 	var _Landscape2 = _interopRequireDefault(_Landscape);
 
-	var _Spin = __webpack_require__(186);
+	var _Spin = __webpack_require__(187);
 
 	var _Spin2 = _interopRequireDefault(_Spin);
 
-	var _Trail = __webpack_require__(187);
+	var _Trail = __webpack_require__(188);
 
 	var _Trail2 = _interopRequireDefault(_Trail);
 
-	__webpack_require__(188);
+	__webpack_require__(189);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var objects = [new _Plane2.default(), new _Mote2.default()];
 
-	var behaviors = [_Overhead2.default, _Landscape2.default, _Spin2.default, _Trail2.default];
+	for (var i = 0; i < 10; i++) {
+	  objects.push(new _Tree2.default());
+	}
+
+	var behaviors = [_Overhead2.default, _Landscape2.default, _Trail2.default, _Spin2.default];
 
 	var camera = new _Camera2.default(behaviors[0]);
 	var world = new _World2.default(camera);
@@ -64483,7 +64491,7 @@
 
 	    var geometry = new _three2.default.PlaneGeometry(GEOMETRY_OPTIONS.width, GEOMETRY_OPTIONS.height, GEOMETRY_OPTIONS.segments, GEOMETRY_OPTIONS.segments);
 	    geometry.vertices.forEach(function (vertex) {
-	      vertex.setZ(Math.random() * _geometryConstants.planeMaxHeight);
+	      vertex.setZ((Math.random() - 0.5) * _geometryConstants.planeMaxHeight);
 	    });
 	    var material = new _three2.default.MeshLambertMaterial({
 	      color: 0x222222,
@@ -64620,7 +64628,76 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _Behavior2 = __webpack_require__(184);
+	var _three = __webpack_require__(177);
+
+	var _three2 = _interopRequireDefault(_three);
+
+	var _geometryConstants = __webpack_require__(180);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var GEOMETRY_OPTIONS = {
+	  leavesRadius: _geometryConstants.moteRadius * 0.75,
+	  leavesHeight: _geometryConstants.moteHeight * 0.5,
+	  segments: 12,
+	  trunkRadius: _geometryConstants.moteRadius * 0.2,
+	  trunkHeight: _geometryConstants.moteHeight * 0.2
+	};
+
+	var Tree = function () {
+	  function Tree() {
+	    _classCallCheck(this, Tree);
+
+	    var leavesGeometry = new _three2.default.ConeGeometry(GEOMETRY_OPTIONS.leavesRadius, GEOMETRY_OPTIONS.leavesHeight, GEOMETRY_OPTIONS.segments, GEOMETRY_OPTIONS.segments);
+	    var leavesMaterial = new _three2.default.MeshLambertMaterial({
+	      color: 0x11cc11,
+	      side: _three2.default.DoubleSide
+	    });
+	    var leavesMesh = new _three2.default.Mesh(leavesGeometry, leavesMaterial);
+	    leavesMesh.position.setY(GEOMETRY_OPTIONS.trunkHeight + GEOMETRY_OPTIONS.leavesHeight * 0.5);
+
+	    var trunkGeometry = new _three2.default.CylinderGeometry(GEOMETRY_OPTIONS.trunkRadius, GEOMETRY_OPTIONS.trunkRadius, GEOMETRY_OPTIONS.trunkHeight, GEOMETRY_OPTIONS.segments, GEOMETRY_OPTIONS.segments);
+	    var trunkMaterial = new _three2.default.MeshLambertMaterial({ color: 0x7d5207 });
+	    var trunkMesh = new _three2.default.Mesh(trunkGeometry, trunkMaterial);
+	    trunkMesh.position.setY(GEOMETRY_OPTIONS.trunkHeight);
+	    this._object = new _three2.default.Object3D();
+	    this._object.position.set((Math.random() - 0.5) * 0.8 * _geometryConstants.planeLength, 0, (Math.random() - 0.5) * 0.8 * _geometryConstants.planeLength);
+	    this._object.add(leavesMesh);
+	    this._object.add(trunkMesh);
+
+	    this._object.scale.multiplyScalar(Math.random() + 0.75);
+	  }
+
+	  _createClass(Tree, [{
+	    key: 'getObject',
+	    value: function getObject() {
+	      return this._object;
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(timestamp) {}
+	  }]);
+
+	  return Tree;
+	}();
+
+	exports.default = Tree;
+
+/***/ },
+/* 184 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _Behavior2 = __webpack_require__(185);
 
 	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
@@ -64666,7 +64743,7 @@
 	exports.default = Overhead;
 
 /***/ },
-/* 184 */
+/* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -64749,7 +64826,7 @@
 	exports.default = Behavior;
 
 /***/ },
-/* 185 */
+/* 186 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -64760,7 +64837,7 @@
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _Behavior2 = __webpack_require__(184);
+	var _Behavior2 = __webpack_require__(185);
 
 	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
@@ -64806,7 +64883,7 @@
 	exports.default = Landscape;
 
 /***/ },
-/* 186 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -64825,7 +64902,7 @@
 
 	var _tween2 = _interopRequireDefault(_tween);
 
-	var _Behavior2 = __webpack_require__(184);
+	var _Behavior2 = __webpack_require__(185);
 
 	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
@@ -64880,7 +64957,7 @@
 	exports.default = Spin;
 
 /***/ },
-/* 187 */
+/* 188 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -64899,7 +64976,7 @@
 
 	var _tween2 = _interopRequireDefault(_tween);
 
-	var _Behavior2 = __webpack_require__(184);
+	var _Behavior2 = __webpack_require__(185);
 
 	var _Behavior3 = _interopRequireDefault(_Behavior2);
 
@@ -64957,16 +65034,16 @@
 	exports.default = Trail;
 
 /***/ },
-/* 188 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 
 	// load the styles
-	var content = __webpack_require__(189);
+	var content = __webpack_require__(190);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(191)(content, {});
+	var update = __webpack_require__(192)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -64983,21 +65060,21 @@
 	}
 
 /***/ },
-/* 189 */
+/* 190 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(190)();
+	exports = module.exports = __webpack_require__(191)();
 	// imports
 
 
 	// module
-	exports.push([module.id, "body {\n  margin: 0;\n  font-size: 24px;\n  font-family: Helvetica, Arial, sans-serif;\n  font-weight: 300;\n  letter-spacing: 0.02em; }\n\n.selector {\n  position: fixed;\n  top: 15px;\n  left: 0;\n  right: 0;\n  text-align: center; }\n  .selector a {\n    background-color: #333;\n    margin: 0.1em 0.2em;\n    padding: 0.1em 0.4em;\n    color: #e0e0e0;\n    text-decoration: none;\n    -webkit-user-select: none;\n    cursor: pointer;\n    border-radius: 5px;\n    opacity: 0.3; }\n    .selector a.selected {\n      opacity: 1.0; }\n", ""]);
+	exports.push([module.id, "body {\n  margin: 0;\n  font-size: 24px;\n  font-family: Helvetica, Arial, sans-serif;\n  font-weight: 300;\n  letter-spacing: 0.02em; }\n\n.selector {\n  position: fixed;\n  top: 15px;\n  left: 0;\n  right: 0;\n  text-align: center; }\n  .selector a {\n    background-color: #333;\n    margin: 0.1em 0.2em;\n    padding: 0.1em 0.4em;\n    color: #e0e0e0;\n    text-decoration: none;\n    -webkit-user-select: none;\n    cursor: pointer;\n    border-radius: 5px;\n    opacity: 0.3; }\n    .selector a.selected {\n      opacity: 1.0; }\n\n#canvas {\n  display: block; }\n", ""]);
 
 	// exports
 
 
 /***/ },
-/* 190 */
+/* 191 */
 /***/ function(module, exports) {
 
 	/*
@@ -65053,7 +65130,7 @@
 
 
 /***/ },
-/* 191 */
+/* 192 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
