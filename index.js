@@ -5,6 +5,7 @@ import World from './source/World'
 import Camera from './source/Camera'
 import Plane from './source/objects/Plane'
 import Mote from './source/objects/Mote'
+import Tree from './source/objects/Tree'
 import Overhead from './source/behaviors/Overhead'
 import Landscape from './source/behaviors/Landscape'
 import Spin from './source/behaviors/Spin'
@@ -16,11 +17,15 @@ const objects = [
   new Mote(),
 ]
 
+for (let i = 0; i < 10; i++) {
+  objects.push(new Tree())
+}
+
 const behaviors = [
   Overhead,
   Landscape,
-  Spin,
   Trail,
+  Spin,
 ]
 
 const camera = new Camera(behaviors[0])

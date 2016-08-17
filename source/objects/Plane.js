@@ -16,7 +16,7 @@ export default class Plane {
       GEOMETRY_OPTIONS.segments
     )
     geometry.vertices.forEach(vertex => {
-      vertex.setZ(Math.random() * planeMaxHeight)
+      vertex.setZ((Math.random() - 0.5) * planeMaxHeight)
     })
     const material = new THREE.MeshLambertMaterial({
       color: 0x222222,
