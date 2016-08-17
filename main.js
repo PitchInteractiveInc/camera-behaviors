@@ -65068,7 +65068,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  margin: 0;\n  font-size: 24px;\n  font-family: Helvetica, Arial, sans-serif;\n  font-weight: 300;\n  letter-spacing: 0.02em; }\n\n.selector {\n  position: fixed;\n  top: 15px;\n  left: 0;\n  right: 0;\n  text-align: center; }\n  .selector a {\n    background-color: #333;\n    margin: 0.1em 0.2em;\n    padding: 0.1em 0.4em;\n    color: #e0e0e0;\n    text-decoration: none;\n    -webkit-user-select: none;\n    cursor: pointer;\n    border-radius: 5px;\n    opacity: 0.3; }\n    .selector a.selected {\n      opacity: 1.0; }\n\n#canvas {\n  display: block; }\n", ""]);
+	exports.push([module.id, "body {\n  margin: 0;\n  font-size: 24px;\n  font-family: Helvetica, Arial, sans-serif;\n  font-weight: 300;\n  letter-spacing: 0.02em; }\n\n.selector {\n  position: fixed;\n  top: 15px;\n  left: 0;\n  right: 0;\n  text-align: center; }\n  .selector a {\n    background-color: #333;\n    margin: 0.1em 0.2em;\n    padding: 0.1em 0.4em;\n    color: #e0e0e0;\n    text-decoration: none;\n    -webkit-user-select: none;\n    cursor: pointer;\n    border-radius: 5px;\n    opacity: 0.3; }\n    .selector a.selected {\n      opacity: 1.0; }\n\ncanvas {\n  display: block; }\n", ""]);
 
 	// exports
 
